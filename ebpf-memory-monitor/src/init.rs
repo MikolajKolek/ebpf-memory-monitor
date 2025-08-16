@@ -1,6 +1,6 @@
 use aya::maps::{Array, HashMap, MapData};
-use aya::programs::KProbe;
-use aya::{Ebpf, EbpfLoader};
+use aya::programs::{FEntry, KProbe};
+use aya::{Btf, Ebpf, EbpfLoader};
 use libc::{c_long, RLIMIT_AS, RLIM_INFINITY};
 use nix::sys::resource::{setrlimit, Resource};
 use nix::unistd::{sysconf, SysconfVar};
@@ -12,7 +12,7 @@ pub(crate) struct SharedState {
     #[allow(dead_code)]
     pub(crate) rlimit_ebpf: Ebpf,
     #[allow(dead_code)]
-    pub(crate) peak_ebpf: Ebpf,
+    pub(crate) hiwater_ebpf: Ebpf,
     // TODO: Remove the Mutex if HashMap insert / remove ever become &self instead of &mut self.
     pub(crate) attempted_vm_peak: Mutex<HashMap<MapData, u32, i64>>,
     pub(crate) vm_peak: Mutex<HashMap<MapData, u32, u64>>,
@@ -31,12 +31,18 @@ pub fn initialize_with_max_listeners(max_listeners: u32) -> anyhow::Result<()> {
         // new memcg-based accounting, see https://lwn.net/Articles/837122/
         setrlimit(Resource::RLIMIT_MEMLOCK, RLIM_INFINITY, RLIM_INFINITY)?;
 
-        let (rlimit_ebpf, attempted_vm_peak) = initialize_rlimit_ebpf(max_listeners)?;
-        let (peak_ebpf, vm_peak) = initialize_peak_ebpf(max_listeners)?;
+        let (rlimit_ebpf, attempted_vm_peak) =
+            initialize_rlimit_fentry(max_listeners).unwrap_or(
+                initialize_rlimit_kprobe(max_listeners)?
+            );
+        let (hiwater_ebpf, vm_peak) =
+            initialize_hiwater_fentry(max_listeners).unwrap_or(
+                initialize_hiwater_kprobe(max_listeners)?
+            );
 
         Ok::<SharedState, anyhow::Error>(SharedState {
             rlimit_ebpf,
-            peak_ebpf,
+            hiwater_ebpf,
             attempted_vm_peak: Mutex::new(attempted_vm_peak),
             vm_peak: Mutex::new(vm_peak),
         })
@@ -45,24 +51,56 @@ pub fn initialize_with_max_listeners(max_listeners: u32) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn initialize_rlimit_ebpf(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, i64>)> {
+
+fn initialize_rlimit_kprobe(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, i64>)> {
+    Ok(initialize_rlimit_program(
+        max_listeners,
+        aya::include_bytes_aligned!(concat!(
+            env!("OUT_DIR"),
+            "/rlimit-kprobe-bin"
+        )),
+        |ebpf| {
+            let program: &mut KProbe =
+                ebpf.program_mut("on_may_expand_vm").unwrap().try_into()?;
+            program.load()?;
+            program.attach("may_expand_vm", 0)?;
+            Ok(())
+        }
+    )?)
+}
+
+fn initialize_rlimit_fentry(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, i64>)> {
+    Ok(initialize_rlimit_program(
+        max_listeners,
+        aya::include_bytes_aligned!(concat!(
+            env!("OUT_DIR"),
+            "/rlimit-fentry-bin"
+        )),
+        |ebpf| {
+            let program: &mut FEntry =
+                ebpf.program_mut("on_may_expand_vm").unwrap().try_into()?;
+            program.load("may_expand_vm", &Btf::from_sys_fs()?)?;
+            program.attach()?;
+            Ok(())
+        }
+    )?)
+}
+
+fn initialize_rlimit_program<F>(max_listeners: u32, program_data: &[u8], program_loader: F)
+    -> anyhow::Result<(Ebpf, HashMap<MapData, u32, i64>)>
+where
+    F: Fn(&mut Ebpf) -> anyhow::Result<()>,
+{
     let mut ebpf: Ebpf = EbpfLoader::new()
         .set_max_entries("ATTEMPTED_VM_PEAK", max_listeners)
-        .load(
-            aya::include_bytes_aligned!(concat!(
-                env!("OUT_DIR"),
-                "/rlimit-monitor"
-            )))?;
+        .load(program_data)?;
 
-    let mut constants: Array<&mut MapData, u64> = Array::try_from(ebpf.map_mut("CONSTANTS").unwrap())?;
+    let mut constants: Array<&mut MapData, u64> =
+        Array::try_from(ebpf.map_mut("CONSTANTS").unwrap())?;
     constants.set(0, &(RLIMIT_AS.try_into().unwrap()), 0)?;
-    let page_size: c_long = sysconf(SysconfVar::PAGE_SIZE)?.expect("page size is invalid");
-    let page_size: u64 = page_size.ilog2().try_into()?;
-    constants.set(1, &page_size, 0)?;
+    constants.set(1, &get_page_shift()?, 0)?;
 
-    let program: &mut KProbe = ebpf.program_mut("check_rlimit").unwrap().try_into()?;
-    program.load()?;
-    program.attach("may_expand_vm", 0)?;
+    program_loader(&mut ebpf)?;
 
     let attempted_vm_peak = HashMap::try_from(ebpf.take_map("ATTEMPTED_VM_PEAK").unwrap())?;
     Ok((
@@ -71,27 +109,63 @@ fn initialize_rlimit_ebpf(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<M
     ))
 }
 
-fn initialize_peak_ebpf(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, u64>)> {
+
+fn initialize_hiwater_kprobe(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, u64>)> {
+    Ok(initialize_hiwater_program(
+        max_listeners,
+        aya::include_bytes_aligned!(concat!(
+            env!("OUT_DIR"),
+            "/hiwater-kprobe-bin"
+        )),
+        |ebpf| {
+            let program: &mut KProbe = ebpf.program_mut("on_do_exit").unwrap().try_into()?;
+            program.load()?;
+            program.attach("do_exit", 0)?;
+            Ok(())
+        }
+    )?)
+}
+
+fn initialize_hiwater_fentry(max_listeners: u32) -> anyhow::Result<(Ebpf, HashMap<MapData, u32, u64>)> {
+    Ok(initialize_hiwater_program(
+        max_listeners,
+        aya::include_bytes_aligned!(concat!(
+            env!("OUT_DIR"),
+            "/hiwater-fentry-bin"
+        )),
+        |ebpf| {
+            let program: &mut FEntry =
+                ebpf.program_mut("on_do_exit").unwrap().try_into()?;
+            program.load("do_exit", &Btf::from_sys_fs()?)?;
+            program.attach()?;
+            Ok(())
+        }
+    )?)
+}
+
+fn initialize_hiwater_program<F>(max_listeners: u32, program_data: &[u8], program_loader: F)
+    -> anyhow::Result<(Ebpf, HashMap<MapData, u32, u64>)>
+where
+    F: Fn(&mut Ebpf) -> anyhow::Result<()>,
+{
     let mut ebpf: Ebpf = EbpfLoader::new()
         .set_max_entries("VM_PEAK", max_listeners)
-        .load(
-            aya::include_bytes_aligned!(concat!(
-                env!("OUT_DIR"),
-                "/peak-monitor"
-            )))?;
+        .load(program_data)?;
 
-    let mut constants: Array<&mut MapData, u64> = Array::try_from(ebpf.map_mut("CONSTANTS").unwrap())?;
-    let page_size: c_long = sysconf(SysconfVar::PAGE_SIZE)?.expect("page size is invalid");
-    let page_size: u64 = page_size.ilog2().try_into()?;
-    constants.set(0, &page_size, 0)?;
+    let mut constants: Array<&mut MapData, u64> =
+        Array::try_from(ebpf.map_mut("CONSTANTS").unwrap())?;
+    constants.set(0, &get_page_shift()?, 0)?;
 
-    let program: &mut KProbe = ebpf.program_mut("check_hiwater_vm").unwrap().try_into()?;
-    program.load()?;
-    program.attach("do_exit", 0)?;
+    program_loader(&mut ebpf)?;
 
     let vm_peak = HashMap::try_from(ebpf.take_map("VM_PEAK").unwrap())?;
     Ok((
         ebpf,
         vm_peak,
     ))
+}
+
+fn get_page_shift() -> anyhow::Result<u64> {
+    let page_size: c_long = sysconf(SysconfVar::PAGE_SIZE)?.expect("page size is invalid");
+    Ok(page_size.ilog2().try_into()?)
 }

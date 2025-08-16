@@ -27,7 +27,10 @@ aya-build = { workspace = true }
 # Finally note that *any* usage of `artifact = ...` in *any* Cargo.toml in the workspace breaks
 # workflows with stable cargo; stable cargo outright refuses to load manifests that use unstable
 # features.ctrlc = "3.4.7"
-rlimit-monitor-ebpf = { path = "../rlimit-monitor-ebpf" }
+rlimit-fentry = { path = "../rlimit-fentry" }
+rlimit-kprobe = { path = "../rlimit-kprobe" }
+hiwater-fentry = { path = "../hiwater-fentry" }
+hiwater-kprobe = { path = "../hiwater-kprobe" }
 
 [lib]
 name = "ebpf_memory_monitor"

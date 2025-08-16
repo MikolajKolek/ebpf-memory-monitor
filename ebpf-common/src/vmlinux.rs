@@ -6026,7 +6026,7 @@ pub union __call_single_node__bindgen_ty_1 {
     pub a_flags: atomic_t,
 }
 pub type smp_call_func_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct __call_single_data {
@@ -15068,7 +15068,7 @@ pub type bpf_iter_init_seq_priv_t = ::core::option::Option<
     ) -> ::aya_ebpf::cty::c_int,
 >;
 pub type bpf_iter_fini_seq_priv_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct bpf_iter_seq_info {
@@ -17985,7 +17985,7 @@ pub struct btf {
     pub base_id_map: *mut __u32,
 }
 pub type btf_dtor_kfunc_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct btf_field_kptr {
@@ -24223,9 +24223,9 @@ pub struct devlink_rate__bindgen_ty_1__bindgen_ty_1 {
     pub refcnt: refcount_t,
 }
 pub type devlink_rel_notify_cb_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut devlink, arg2: u32_)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut devlink, arg2: u32_)>;
 pub type devlink_rel_cleanup_cb_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut devlink, arg2: u32_, arg3: u32_)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut devlink, arg2: u32_, arg3: u32_)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct devlink_rel {
@@ -24827,7 +24827,7 @@ pub struct ww_acquire_ctx {
     pub is_wait_die: ::aya_ebpf::cty::c_ushort,
 }
 pub type kthread_work_func_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut kthread_work)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut kthread_work)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct kthread_work {
@@ -30462,7 +30462,7 @@ pub struct regulator_init_data {
     pub driver_data: *mut ::aya_ebpf::cty::c_void,
 }
 pub type action_destr =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct nf_flowtable {
@@ -37184,7 +37184,7 @@ pub struct io_wq_work_node {
 }
 pub type io_tw_token_t = io_tw_state;
 pub type io_req_tw_func_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut io_kiocb, arg2: io_tw_token_t)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut io_kiocb, arg2: io_tw_token_t)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct io_task_work {
@@ -38154,7 +38154,7 @@ pub struct io_uring_zcrx_rqe {
     pub __pad: __u32,
 }
 pub type free_work_fn =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut io_wq_work) -> *mut io_wq_work>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut io_wq_work) -> *mut io_wq_work>;
 pub type io_wq_work_fn = ::core::option::Option<unsafe extern "C" fn(arg1: *mut io_wq_work)>;
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -44212,7 +44212,7 @@ pub struct netdev_tc_txq {
     pub offset: u16_,
 }
 pub type rx_handler_func_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut *mut sk_buff) -> rx_handler_result_t>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut *mut sk_buff) -> rx_handler_result_t>;
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct net_device_stats {
@@ -54725,9 +54725,9 @@ pub struct regex {
     pub match_: regex_match_func,
 }
 pub type regmap_lock =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 pub type regmap_unlock =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct regmap_format {
@@ -54998,9 +54998,9 @@ pub type regmap_hw_reg_noinc_read = ::core::option::Option<
     ) -> ::aya_ebpf::cty::c_int,
 >;
 pub type regmap_hw_free_context =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 pub type regmap_hw_async_alloc =
-    ::core::option::Option<unsafe extern "C" fn() -> *mut regmap_async>;
+::core::option::Option<unsafe extern "C" fn() -> *mut regmap_async>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct regmap_bus {
@@ -57164,9 +57164,9 @@ pub struct scx_rq {
     pub kick_cpus_irq_work: irq_work,
 }
 pub type dl_server_has_tasks_f =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut sched_dl_entity) -> bool_>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut sched_dl_entity) -> bool_>;
 pub type dl_server_pick_f =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut sched_dl_entity) -> *mut task_struct>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut sched_dl_entity) -> *mut task_struct>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct sched_dl_entity {
@@ -64309,7 +64309,7 @@ impl tc_action {
     }
 }
 pub type tc_action_priv_destructor =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut ::aya_ebpf::cty::c_void)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct tc_action_ops {
@@ -66842,7 +66842,7 @@ pub struct wiphy_vendor_command {
     pub maxattr: ::aya_ebpf::cty::c_uint,
 }
 pub type wiphy_work_func_t =
-    ::core::option::Option<unsafe extern "C" fn(arg1: *mut wiphy, arg2: *mut wiphy_work)>;
+::core::option::Option<unsafe extern "C" fn(arg1: *mut wiphy, arg2: *mut wiphy_work)>;
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct wiphy_work {

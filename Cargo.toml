@@ -3,8 +3,11 @@ resolver = "2"
 members = [
     "ebpf-memory-monitor",
     "ebpf-memory-monitor-common",
-    "rlimit-monitor-ebpf",
-    "peak-monitor-ebpf"
+    "ebpf-common",
+    "rlimit-fentry",
+    "rlimit-kprobe",
+    "hiwater-fentry",
+    "hiwater-kprobe",
 ]
 default-members = ["ebpf-memory-monitor", "ebpf-memory-monitor-common"]
 
@@ -21,10 +24,18 @@ nix = { version = "0.30.1", features = ["resource", "feature"] }
 which = { version = "8.0.0" }
 libc = { version = "0.2.175", default-features = false }
 
-[profile.release.package.rlimit-monitor-ebpf]
+[profile.release.package.rlimit-fentry]
 debug = 2
 codegen-units = 1
 
-[profile.release.package.peak-monitor-ebpf]
+[profile.release.package.rlimit-kprobe]
+debug = 2
+codegen-units = 1
+
+[profile.release.package.hiwater-fentry]
+debug = 2
+codegen-units = 1
+
+[profile.release.package.hiwater-kprobe]
 debug = 2
 codegen-units = 1

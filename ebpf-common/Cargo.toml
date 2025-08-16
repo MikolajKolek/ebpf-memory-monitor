@@ -1,5 +1,5 @@
 [package]
-name = "rlimit-monitor-ebpf"
+name = "ebpf-common"
 version = "0.1.0"
 edition.workspace = true
 
@@ -7,9 +7,5 @@ edition.workspace = true
 ebpf-memory-monitor-common = { path = "../ebpf-memory-monitor-common" }
 aya-ebpf = { workspace = true }
 
-[build-dependencies]
-which = { workspace = true }
-
-[[bin]]
-name = "rlimit-monitor"
-path = "src/main.rs"
+[lib]
+path = "src/lib.rs"

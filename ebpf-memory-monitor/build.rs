@@ -8,16 +8,26 @@ fn main() -> anyhow::Result<()> {
         .exec()
         .context("MetadataCommand::exec")?;
 
-    let rlimit_package: Package = packages
+    let rlimit_fentry: Package = packages
         .iter()
-        .find(|Package { name, .. }| name == "rlimit-monitor-ebpf")
-        .ok_or_else(|| anyhow!("rlimit-monitor-ebpf package not found"))?
+        .find(|Package { name, .. }| name == "rlimit-fentry")
+        .ok_or_else(|| anyhow!("rlimit-fentry package not found"))?
         .clone();
-    let peak_package: Package = packages
+    let rlimit_kprobe: Package = packages
         .iter()
-        .find(|Package { name, .. }| name == "peak-monitor-ebpf")
-        .ok_or_else(|| anyhow!("peak-monitor-ebpf package not found"))?
+        .find(|Package { name, .. }| name == "rlimit-kprobe")
+        .ok_or_else(|| anyhow!("rlimit-kprobe package not found"))?
+        .clone();
+    let hiwater_fentry: Package = packages
+        .iter()
+        .find(|Package { name, .. }| name == "hiwater-fentry")
+        .ok_or_else(|| anyhow!("hiwater-fentry package not found"))?
+        .clone();
+    let hiwater_kprobe: Package = packages
+        .iter()
+        .find(|Package { name, .. }| name == "hiwater-kprobe")
+        .ok_or_else(|| anyhow!("hiwater-kprobe package not found"))?
         .clone();
 
-    aya_build::build_ebpf([rlimit_package, peak_package])
+    aya_build::build_ebpf([rlimit_fentry, rlimit_kprobe, hiwater_fentry, hiwater_kprobe])
 }

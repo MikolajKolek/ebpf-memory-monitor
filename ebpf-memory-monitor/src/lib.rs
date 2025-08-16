@@ -7,7 +7,7 @@ use std::fmt::{Debug, Display};
 use ebpf_memory_monitor_common::RLIMIT_AS_NOT_HIT;
 use std::io;
 use std::io::BufRead;
-use aya::maps::{HashMap, IterableMap, MapData};
+use aya::maps::{HashMap, MapData};
 use aya::Pod;
 use crate::init::{initialize_with_max_listeners, SHARED_STATE};
 

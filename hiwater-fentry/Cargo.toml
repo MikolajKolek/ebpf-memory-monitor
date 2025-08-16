@@ -1,15 +1,16 @@
 [package]
-name = "peak-monitor-ebpf"
+name = "hiwater-fentry"
 version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
 ebpf-memory-monitor-common = { path = "../ebpf-memory-monitor-common" }
+ebpf-common = { path = "../ebpf-common" }
 aya-ebpf = { workspace = true }
 
 [build-dependencies]
 which = { workspace = true }
 
 [[bin]]
-name = "peak-monitor"
+name = "hiwater-fentry-bin"
 path = "src/main.rs"
