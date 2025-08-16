@@ -1,0 +1,15 @@
+[package]
+name = "peak-monitor-ebpf"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+ebpf-memory-monitor-common = { path = "../ebpf-memory-monitor-common" }
+aya-ebpf = { workspace = true }
+
+[build-dependencies]
+which = { workspace = true }
+
+[[bin]]
+name = "peak-monitor"
+path = "src/main.rs"
