@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 #![feature(once_cell_try)]
 
 pub mod init;

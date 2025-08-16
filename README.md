@@ -22,6 +22,10 @@ cargo test --release --config 'target."cfg(all())".runner="sudo -E"' -- --nocapt
 Cargo build scripts are used to automatically build the eBPF correctly and include it in the
 program.
 
+# Requirements
+
+Ebpf-memory-listener currently requires the use of Linux 5.5 or above.
+
 ## License
 
 With the exception of eBPF code, ebpf-memory-monitor is distributed under the terms
