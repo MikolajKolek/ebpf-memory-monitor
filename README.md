@@ -31,11 +31,13 @@ Ebpf-memory-listener currently requires the use of Linux 5.5 or above.
 With the exception of eBPF code, ebpf-memory-monitor is distributed under the terms
 of the [MIT license].
 
+The `non_mut_modify` module is based on the source code of [`aya`](https://github.com/aya-rs/aya), version 0.13.1, also available under the terms of the MIT license.
+
 ### eBPF
 
 All eBPF code is distributed under either the terms of the
 [GNU General Public License, Version 2] or the [MIT license], at your
-option.
+discretion.
 
 [MIT license]: LICENSE-MIT
 [GNU General Public License, Version 2]: LICENSE-GPL2

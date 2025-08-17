@@ -8,6 +8,7 @@ license.workspace = true
 ebpf-memory-monitor-common = { path = "../ebpf-memory-monitor-common", features = ["user"] }
 anyhow = { workspace = true, default-features = true }
 aya = { workspace = true }
+aya-obj = { workspace = true }
 nix = { workspace = true }
 # Only used for constants
 libc = { workspace = true }

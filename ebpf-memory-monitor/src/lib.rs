@@ -2,6 +2,7 @@
 #![feature(once_cell_try)]
 
 pub mod init;
+mod non_mut_modify;
 
 use std::borrow::Borrow;
 use std::fmt::{Debug, Display};
@@ -11,6 +12,7 @@ use std::io::BufRead;
 use aya::maps::{HashMap, MapData};
 use aya::Pod;
 use crate::init::{initialize_with_max_listeners, SHARED_STATE};
+use crate::non_mut_modify::NonMutModify;
 
 #[test]
 fn test_not_main() {
@@ -36,11 +38,6 @@ fn test_not_main() {
         }
         else if line.starts_with("debug") {
             if let Some(shared_state) = SHARED_STATE.get() {
-                let vm_peak =
-                    shared_state.vm_peak.lock().expect("failed to lock vm_peak");
-                let attempted_vm_peak =
-                    shared_state.attempted_vm_peak.lock().expect("failed to lock attempted_vm_peak");
-
                 fn print_hash_map<A, B, C>(name: &str, map: &HashMap<A, B, C>)
                 where
                     A: Borrow<MapData>,
@@ -60,8 +57,8 @@ fn test_not_main() {
                     )
                 }
 
-                print_hash_map("VM_PEAK", &vm_peak);
-                print_hash_map("ATTEMPTED_VM_PEAK", &attempted_vm_peak);
+                print_hash_map("VM_PEAK", &shared_state.vm_peak);
+                print_hash_map("ATTEMPTED_VM_PEAK", &shared_state.attempted_vm_peak);
             } else {
                 panic!("ebpf-memory-monitor was not initialized");
             }
@@ -86,18 +83,12 @@ fn test_not_main() {
 /// This method should not be called unless `initialize_with_max_listeners` was successfully called before.
 pub fn start_monitoring_process(pid: u32) {
     if let Some(shared_state) = SHARED_STATE.get() {
-        let mut attempted_vm_peak = shared_state
-            .attempted_vm_peak
-            .lock().expect("failed to lock attempted_vm_peak");
-
-        attempted_vm_peak.insert(pid, RLIMIT_AS_NOT_HIT, 0)
+        shared_state.attempted_vm_peak
+            .non_mut_insert(pid, RLIMIT_AS_NOT_HIT, 0)
             .expect("insert to attempted_vm_peak failed");
-        drop(attempted_vm_peak);
 
-        let mut vm_peak = shared_state
-            .vm_peak
-            .lock().expect("failed to lock vm_peak");
-        vm_peak.insert(pid, 0, 0)
+        shared_state.vm_peak
+            .non_mut_insert(pid, 0, 0)
             .expect("insert to vm_peak failed");
     } else {
         panic!("ebpf-memory-monitor was not initialized");
@@ -114,14 +105,13 @@ pub fn get_process_status(pid: u32) -> Option<ProcessStatus> {
     if let Some(shared_state) = SHARED_STATE.get() {
         let attempted_vm_peak = shared_state
             .attempted_vm_peak
-            .lock().expect("failed to lock attempted_vm_peak")
             .get(&pid, 0).ok()?;
         let vm_peak = shared_state
             .vm_peak
-            .lock().expect("failed to lock vm_peak");
+            .get(&pid, 0).ok()?;
 
         Some(ProcessStatus {
-            vm_peak_bytes: vm_peak.get(&pid, 0).ok()?,
+            vm_peak_bytes: vm_peak,
             attempted_vm_peak_bytes: if attempted_vm_peak == RLIMIT_AS_NOT_HIT {
                 None
             } else {
@@ -135,18 +125,12 @@ pub fn get_process_status(pid: u32) -> Option<ProcessStatus> {
 
 pub fn stop_monitoring_process(pid: u32) {
     if let Some(shared_state) = SHARED_STATE.get() {
-        let mut attempted_vm_peak = shared_state
-            .attempted_vm_peak
-            .lock().expect("failed to lock attempted_vm_peak");
-
-        attempted_vm_peak.remove(&pid)
+        shared_state.attempted_vm_peak
+            .non_mut_remove(&pid)
             .expect("remove from attempted_vm_peak failed");
-        drop(attempted_vm_peak);
 
-        let mut vm_peak = shared_state
-            .vm_peak
-            .lock().expect("failed to lock vm_peak");
-        vm_peak.remove(&pid)
+        shared_state.vm_peak
+            .non_mut_remove(&pid)
             .expect("remove from vm_peak failed");
     } else {
         panic!("ebpf-memory-monitor was not initialized");

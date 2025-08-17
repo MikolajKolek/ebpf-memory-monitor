@@ -4,7 +4,7 @@ use aya::{Btf, Ebpf, EbpfLoader};
 use libc::{c_long, RLIMIT_AS, RLIM_INFINITY};
 use nix::sys::resource::{setrlimit, Resource};
 use nix::unistd::{sysconf, SysconfVar};
-use std::sync::{Mutex, OnceLock};
+use std::sync::OnceLock;
 
 pub(crate) struct SharedState {
     // We hold these ebpf objects even if they are never accessed,
@@ -13,9 +13,8 @@ pub(crate) struct SharedState {
     pub(crate) rlimit_ebpf: Ebpf,
     #[allow(dead_code)]
     pub(crate) hiwater_ebpf: Ebpf,
-    // TODO: Remove the Mutex if HashMap insert / remove ever become &self instead of &mut self.
-    pub(crate) attempted_vm_peak: Mutex<HashMap<MapData, u32, i64>>,
-    pub(crate) vm_peak: Mutex<HashMap<MapData, u32, u64>>,
+    pub(crate) attempted_vm_peak: HashMap<MapData, u32, i64>,
+    pub(crate) vm_peak: HashMap<MapData, u32, u64>,
 }
 
 pub(crate) static SHARED_STATE: OnceLock<SharedState> = OnceLock::new();
@@ -43,8 +42,8 @@ pub fn initialize_with_max_listeners(max_listeners: u32) -> anyhow::Result<()> {
         Ok::<SharedState, anyhow::Error>(SharedState {
             rlimit_ebpf,
             hiwater_ebpf,
-            attempted_vm_peak: Mutex::new(attempted_vm_peak),
-            vm_peak: Mutex::new(vm_peak),
+            attempted_vm_peak,
+            vm_peak,
         })
     })?;
 
